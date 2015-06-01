@@ -2,7 +2,7 @@
 @import "foundation";
 
 body {
-  background-color: $white-smoke;
+  background-color: $vapor;
 }
 
 .banner {
@@ -34,4 +34,14 @@ body {
   h4 {
     padding: $column-gutter;
   }
+}
+
+.panel {
+  border: none;
+  background-color: $smoke;
+}
+
+.summary {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
 }

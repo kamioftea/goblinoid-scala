@@ -66,7 +66,7 @@ object Panel {
     )(Panel.apply _)
 }
 
-case class IndexTemplate(content: String, panels: Seq[Panel], panelsPerLine: Option[Map[String, Int]]) extends Template {
+case class IndexTemplate(title: String, content: String, panels: Seq[Panel], panelsPerLine: Option[Map[String, Int]]) extends Template {
 
   lazy val panelsPerLineWithDefaults = {
     val ensured = panelsPerLine.getOrElse(Map.empty[String, Int])
@@ -86,6 +86,7 @@ case class IndexTemplate(content: String, panels: Seq[Panel], panelsPerLine: Opt
 
 object IndexTemplate {
   implicit val reader: Reads[IndexTemplate] = (
+    (JsPath \ "title").read[String] and
     (JsPath \ "content").read[String] and
       (JsPath \ "panels").read[Seq[Panel]] and
       (JsPath \ "panelsPerLine").readNullable[Map[String, Int]]

@@ -12,22 +12,7 @@
         <script src='@routes.Assets.versioned("javascripts/modernizr.js")' type="text/javascript"></script>
     </head>
     <body>
-        <div class="banner" data-interchange='[@routes.Assets.versioned("images/banner-small.jpg"), (default)], [@routes.Assets.versioned("images/banner-retina-small.jpg"), (retina)],
-        [@routes.Assets.versioned("images/banner-medium.jpg"), (medium)], [@routes.Assets.versioned("images/banner-retina-medium.jpg"), (retina medium)],
-        [@routes.Assets.versioned("images/banner-large.jpg"), (large)], [@routes.Assets.versioned("images/banner-retina-large.jpg"), (retina large)]'>
-            <div class="banner-content">
-                <div class="row">
-                    <div class="small-12 columns">
-                        <h1>Jeff Horton</h1>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="small-12 columns">
-                @content
-            </div>
-        </div>
+        @content
 
         <script src='@routes.Assets.versioned("javascripts/app.js")' type="text/javascript"></script>
     </body>

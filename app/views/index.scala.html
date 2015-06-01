@@ -2,19 +2,40 @@
 
 @main("Goblinoid.co.uk") {
 
-    @Html(sections(template.content))
+    <div class="banner" data-interchange='[@routes.Assets.versioned("images/banner-small.jpg"), (default)], [@routes.Assets.versioned("images/banner-retina-small.jpg"), (retina)],
+            [@routes.Assets.versioned("images/banner-medium.jpg"), (medium)], [@routes.Assets.versioned("images/banner-retina-medium.jpg"), (retina medium)],
+            [@routes.Assets.versioned("images/banner-large.jpg"), (large)], [@routes.Assets.versioned("images/banner-retina-large.jpg"), (retina large)]'>
+        <div class="banner-content">
+            <div class="row">
+                <div class="small-12 columns">
+                    <h1>@template.title</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="row">
+    <div class="small-12 medium-8 columns">
+        <div class=" summary">
+            @Html(sections(template.content))
+        </div>
+    </div>
+</div>
+    <div class="row">
+        <div class="small-12 columns">
+            <ul class="@template.blockClass">
+                @for(panel <- template.panels) {
+                    <li>
+                        <a href="@panel.link">
+                            <div class="index-panel">
+                                <img src='@routes.Assets.versioned("images/" + panel.image)' />
+                                <h4>@panel.title</h4>
+                            </div>
+                        </a>
+                    </li>
+                }
+            </ul>
 
-    <ul class="@template.blockClass">
-        @for(panel <- template.panels) {
-            <li>
-                <a href="@panel.link">
-                    <div class="index-panel">
-                        <img src='@routes.Assets.versioned("images/" + panel.image)' />
-                        <h4>@panel.title</h4>
-                    </div>
-                </a>
-            </li>
-        }
-    </ul>
+        </div>
+    </div>
 
 }
