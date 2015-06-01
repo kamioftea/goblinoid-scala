@@ -1,0 +1,21 @@
+{
+  "name": "homepage",
+  "version": "0.0.0",
+  "authors": [
+    "Jeff Horton <jeff@goblinoid.co.uk>"
+  ],
+  "description": "javascript/css management for my homepage",
+  "license": "MIT",
+  "homepage": "www.goblinoid.co.uk",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "foundation": "~5.5.2",
+    "bacon": "~0.7.60"
+  }
+}

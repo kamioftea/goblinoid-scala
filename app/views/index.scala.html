@@ -1,0 +1,20 @@
+@(template: IndexTemplate, sections: (String) => String)
+
+@main("Goblinoid.co.uk") {
+
+    @Html(sections(template.content))
+
+    <ul class="@template.blockClass">
+        @for(panel <- template.panels) {
+            <li>
+                <a href="@panel.link">
+                    <div class="index-panel">
+                        <img src='@routes.Assets.versioned("images/" + panel.image)' />
+                        <h4>@panel.title</h4>
+                    </div>
+                </a>
+            </li>
+        }
+    </ul>
+
+}

@@ -1,0 +1,15 @@
+logs
+target
+/.idea
+/.idea_modules
+/.classpath
+/.project
+/.settings
+/RUNNING_PID
+bower_components
+node_modules
+*.log
+*.css.map
+*.js.map
+public/javascripts/*.js
+public/stylesheets/*.css
