@@ -6,10 +6,12 @@ target
 /.project
 /.settings
 /RUNNING_PID
+*.lock
 bower_components
 node_modules
 *.log
 *.css.map
 *.js.map
+*.iml
 public/javascripts/*.js
 public/stylesheets/*.css

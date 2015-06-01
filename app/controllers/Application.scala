@@ -87,7 +87,7 @@ case class IndexTemplate(title: String, content: String, panels: Seq[Panel], pan
 object IndexTemplate {
   implicit val reader: Reads[IndexTemplate] = (
     (JsPath \ "title").read[String] and
-    (JsPath \ "content").read[String] and
+      (JsPath \ "content").read[String] and
       (JsPath \ "panels").read[Seq[Panel]] and
       (JsPath \ "panelsPerLine").readNullable[Map[String, Int]]
     )(IndexTemplate.apply _)

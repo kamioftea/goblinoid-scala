@@ -1,4 +1,4 @@
-name := "play-scala"
+name := "goblinoid-scala"
 
 version := "1.0-SNAPSHOT"
 
