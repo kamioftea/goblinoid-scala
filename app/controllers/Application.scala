@@ -5,12 +5,13 @@ import java.io.FileInputStream
 import org.pegdown.PegDownProcessor
 import play.api._
 import play.api.mvc._
-import java.nio.file.Files
+import java.nio.file.{Path, Files}
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import play.twirl.api.HtmlFormat
 
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import play.api.Play.current
 import scala.io.Source
@@ -20,10 +21,41 @@ class Application extends Controller {
 
   implicit val pegdown = new PegDownProcessor()
 
-  def index = Action {
+  def index(path: String) = Action {
+    val basePath = Play.application.path.toPath.resolve("dist/repo/" + path.toString)
 
+    val content = for {
+      dir <- tryDirs(basePath, List("", "index"))
+      template <- loadTemplate(dir)
+    } yield template.getContent(loadSections(dir))
 
-    val path = Play.application.path.toPath.resolve("dist/repo/index")
+    content match {
+      case None => NotFound(views.html.notFound(path))
+      case Some(html) => Ok(html)
+    }
+  }
+
+  @tailrec
+  final def tryDirs(basePath: Path, paths: List[String]): Option[Path] = paths match {
+    case Nil => None
+    case (x :: xs) =>
+      val dir = basePath.resolve(x)
+      if (Files.isDirectory(dir) && Files.exists(dir.resolve("manifest.json")))
+        Some(dir)
+      else
+        tryDirs(basePath, xs)
+  }
+
+  def loadTemplate(path: Path): Option[Template] = {
+    val manifest = Json.parse(new FileInputStream(path.resolve("manifest.json").toFile))
+
+    (manifest \ "template").as[JsString] match {
+      case index if index.equals(JsString("index")) => manifest.validate[IndexTemplate].asOpt
+      case _ => None
+    }
+  }
+
+  def loadSections(path: Path): Map[String, String] = {
     val pattern = "(.*)\\.md".r
     val sections = Files.newDirectoryStream(path, "*.md") map (_.toFile) map {
       section => {
@@ -36,17 +68,7 @@ class Application extends Controller {
       }
     }
 
-    val manifest = Json.parse(new FileInputStream(path.resolve("manifest.json").toFile))
-    val templateOpt: Option[Template] = (manifest \ "template").as[JsString] match {
-      case index if index.equals(JsString("index")) => manifest.validate[IndexTemplate].asOpt
-      case _ => None
-    }
-
-    templateOpt match {
-      case Some(template) => Ok(template.getContent(sections.toMap))
-      case None => InternalServerError("Invalid template")
-    }
-
+    sections.toMap
   }
 
 }
@@ -54,6 +76,7 @@ class Application extends Controller {
 abstract class Template {
 
   def getContent(sections: Map[String, String]): HtmlFormat.Appendable
+
 }
 
 case class Panel(title: String, image: String, link: String)
