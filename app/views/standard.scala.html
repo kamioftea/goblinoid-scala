@@ -14,8 +14,20 @@
 	<div class="page-wrap">
 		<a id="show-menu" href="#main-navigation"><i class="fa fa-bars"></i></a>
 		<a id="hide-menu" href="#"></a>
+
+		@template.breadcrumbsOpt match {
+			case Some(breadcrumbs) => {
+				<nav class="breadcrumbs">
+					@for(breadcrumb <- breadcrumbs) {
+						<a @Html(breadcrumb.currentAttr) href="@breadcrumb.url">@breadcrumb.title</a>
+					}
+				</nav>
+			}
+			case None => {}
+		}
+
 		<div class="row without-centering">
-			<main class="small-12 xcolumns">
+			<main class="small-12 columns">
 				@Html(sections(template.content))
 			</main>
 		</div>

@@ -4,6 +4,7 @@ import java.io.FileInputStream
 
 import org.pegdown.PegDownProcessor
 import play.api._
+import play.api.data.validation.ValidationError
 import play.api.mvc._
 import java.nio.file.{Path, Files}
 import play.api.libs.json._
@@ -27,7 +28,7 @@ class Application extends Controller {
     val content = for {
       dir <- tryDirs(basePath, List("", "index"))
       template <- loadTemplate(dir)
-    } yield template.getContent(loadSections(dir))
+    } yield template.getHtmlContent(loadSections(dir))
 
     content match {
       case None => NotFound(views.html.notFound(path))
@@ -74,7 +75,7 @@ class Application extends Controller {
 }
 
 abstract class Template {
-  def getContent(sections: Map[String, String]): HtmlFormat.Appendable
+  def getHtmlContent(sections: Map[String, String]): HtmlFormat.Appendable
 }
 
 case class Panel(title: String, image: String, link: String)
@@ -99,12 +100,13 @@ case class IndexTemplate(title: String, content: String, panels: Seq[Panel], pan
     }).mkString(" ")
 
 
-  override def getContent(sections: Map[String, String]) = {
+  override def getHtmlContent(sections: Map[String, String]) = {
     views.html.index(this, sections.withDefaultValue(""))
   }
 }
 
 object IndexTemplate {
+
   implicit val reader: Reads[IndexTemplate] = (
     (JsPath \ "title").read[String] and
       (JsPath \ "content").read[String] and
@@ -113,16 +115,31 @@ object IndexTemplate {
     )(IndexTemplate.apply _)
 }
 
-case class StandardTemplate(title: String, content: String) extends Template {
-  override def getContent(sections: Map[String, String]) = {
+case class StandardTemplate(title: String, content: String, breadcrumbsOpt: Option[Seq[Breadcrumb]]) extends Template {
+  override def getHtmlContent(sections: Map[String, String]) = {
     views.html.standard(this, sections.withDefaultValue(""))
   }
 }
 
 object StandardTemplate {
+
   implicit val reader: Reads[StandardTemplate] = (
     (JsPath \ "title").read[String] and
-      (JsPath \ "content").read[String]
+      (JsPath \ "content").read[String] and
+      (JsPath \ "breadcrumbs").readNullable[Seq[Breadcrumb]]
     )(StandardTemplate.apply _)
+}
+
+case class Breadcrumb(title: String, url: String, current: Option[Boolean])
+{
+  val currentAttr = if(current.getOrElse(false)) "class=\"current\"" else ""
+}
+
+object Breadcrumb {
+  implicit lazy val reader: Reads[Breadcrumb] = (
+    __(0).read[String] and
+    __(1).read[String] and
+    __(2).readNullable[Boolean]
+    )(Breadcrumb.apply _)
 }
 

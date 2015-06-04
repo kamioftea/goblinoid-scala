@@ -11,7 +11,8 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   specs2 % Test,
-  "org.pegdown" % "pegdown" % "1.5.0"
+  "org.pegdown" % "pegdown" % "1.5.0",
+  "net.sourceforge.htmlunit" % "htmlunit" % "2.17"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
