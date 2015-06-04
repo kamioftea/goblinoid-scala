@@ -1,0 +1,23 @@
+@(template: StandardTemplate, sections: Map[String,String])
+
+@main(template.title + " | Goblinoid.co.uk") {
+
+	<nav id="main-navigation">
+		<a href="/">Home</a>
+		<span class="active">About Me</span>
+		<a class="child" href="/about/skills">Skills</a>
+		<a class="child" href="/about/experience">Experience</a>
+		<a href="/stuff">Things I've Done</a>
+		<a href="/contact">Contact Me</a>
+	</nav>
+
+	<div class="page-wrap">
+		<a id="show-menu" href="#main-navigation"><i class="fa fa-bars"></i></a>
+		<a id="hide-menu" href="#"></a>
+		<div class="row without-centering">
+			<main class="small-12 xcolumns">
+				@Html(sections(template.content))
+			</main>
+		</div>
+	</div>
+}

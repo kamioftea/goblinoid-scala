@@ -2,6 +2,10 @@
   "template": "index",
   "title": "Jeff Horton",
   "content": "summary",
+  "panelsPerLine": {
+	"small": 1,
+	"medium": 3
+  },
   "panels": [
 	{
 	  "title": "About Jeff",

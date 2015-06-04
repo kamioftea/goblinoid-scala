@@ -1,6 +1,6 @@
-@(template: IndexTemplate, sections: (String) => String)
+@(template: IndexTemplate, sections: Map[String, String])
 
-@main("Goblinoid.co.uk") {
+@main(template.title + " | Goblinoid.co.uk") {
 
     <div class="banner" data-interchange='[@routes.Assets.versioned("images/banner-small.jpg"), (default)], [@routes.Assets.versioned("images/banner-retina-small.jpg"), (retina)],
             [@routes.Assets.versioned("images/banner-medium.jpg"), (medium)], [@routes.Assets.versioned("images/banner-retina-medium.jpg"), (retina medium)],
@@ -13,13 +13,13 @@
             </div>
         </div>
     </div>
-<div class="row">
-    <div class="small-12 medium-8 columns">
-        <div class="summary">
-            @Html(sections(template.content))
+    <div class="row">
+        <div class="small-12 medium-10 large-8 columns">
+            <div class="summary">
+                @Html(sections(template.content))
+            </div>
         </div>
     </div>
-</div>
     <div class="row">
         <div class="small-12 columns">
             <ul class="@template.blockClass">
@@ -34,7 +34,6 @@
                     </li>
                 }
             </ul>
-
         </div>
     </div>
 

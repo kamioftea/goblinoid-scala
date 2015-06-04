@@ -13,7 +13,8 @@ var paths = {
 	styles:        ['./assets/styles/app.scss'],
 	styleIncludes: [
 		'./assets/styles',
-		'./bower_components/foundation/scss'
+		'./bower_components/foundation/scss',
+		'./bower_components/components-font-awesome/scss'
 	],
 	scripts:       [
 		'./bower_components/jquery/dist/jquery.js',
@@ -22,6 +23,9 @@ var paths = {
 		'./bower_components/fastclick/lib/fastclick.js',
 		'./bower_components/bacon/dist/Bacon.js',
 		'./assets/scripts/app.js'
+	],
+	fonts: [
+		'./bower_components/components-font-awesome/fonts/*'
 	]
 };
 
@@ -33,6 +37,11 @@ gulp.task('styles', function () {
 		.pipe(concat('app.css'))
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest('../public/stylesheets'))
+});
+
+gulp.task('fonts', function () {
+	return gulp.src(paths.fonts)
+		.pipe(gulp.dest('../public/fonts'))
 });
 
 gulp.task('scripts', function () {
@@ -48,7 +57,7 @@ gulp.task('scripts', function () {
 		.pipe(gulp.dest('../public/javascripts'))
 });
 
-gulp.task('watch', ['styles', 'scripts'], function () {
+gulp.task('watch', ['styles', 'scripts', 'fonts'], function () {
 	gulp.watch(paths.styles.concat(paths.styleIncludes), ['styles']);
 	gulp.watch(paths.scripts, ['scripts']);
 });

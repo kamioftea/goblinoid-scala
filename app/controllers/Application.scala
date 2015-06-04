@@ -51,6 +51,7 @@ class Application extends Controller {
 
     (manifest \ "template").as[JsString] match {
       case index if index.equals(JsString("index")) => manifest.validate[IndexTemplate].asOpt
+      case standard if standard.equals(JsString("standard")) => manifest.validate[StandardTemplate].asOpt
       case _ => None
     }
   }
@@ -70,13 +71,10 @@ class Application extends Controller {
 
     sections.toMap
   }
-
 }
 
 abstract class Template {
-
   def getContent(sections: Map[String, String]): HtmlFormat.Appendable
-
 }
 
 case class Panel(title: String, image: String, link: String)
@@ -90,7 +88,6 @@ object Panel {
 }
 
 case class IndexTemplate(title: String, content: String, panels: Seq[Panel], panelsPerLine: Option[Map[String, Int]]) extends Template {
-
   lazy val panelsPerLineWithDefaults = {
     val ensured = panelsPerLine.getOrElse(Map.empty[String, Int])
     ensured.updated("small", ensured.getOrElse("small", Math.max(Math.min(panels.size, 12), 1)))
@@ -116,4 +113,16 @@ object IndexTemplate {
     )(IndexTemplate.apply _)
 }
 
+case class StandardTemplate(title: String, content: String) extends Template {
+  override def getContent(sections: Map[String, String]) = {
+    views.html.standard(this, sections.withDefaultValue(""))
+  }
+}
+
+object StandardTemplate {
+  implicit val reader: Reads[StandardTemplate] = (
+    (JsPath \ "title").read[String] and
+      (JsPath \ "content").read[String]
+    )(StandardTemplate.apply _)
+}
 
