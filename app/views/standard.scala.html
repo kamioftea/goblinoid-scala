@@ -17,17 +17,23 @@
 
 		@template.breadcrumbsOpt match {
 			case Some(breadcrumbs) => {
-				<nav class="breadcrumbs">
-					@for(breadcrumb <- breadcrumbs) {
-						<a @Html(breadcrumb.currentAttr) href="@breadcrumb.url">@breadcrumb.title</a>
-					}
-				</nav>
+				<div class="breadcrumbs-wrapper">
+					<div class="row without-centering">
+						<div class="small-12 large-8 large-offset-2 columns">
+							<nav class="breadcrumbs">
+								@for(breadcrumb <- breadcrumbs) {
+								<a @Html(breadcrumb.currentAttr) href="@breadcrumb.url">@breadcrumb.title</a>
+								}
+							</nav>
+						</div>
+					</div>
+				</div>
 			}
 			case None => {}
 		}
 
 		<div class="row without-centering">
-			<main class="small-12 columns">
+			<main class="small-12 large-8 large-offset-2 columns">
 				@Html(sections(template.content))
 			</main>
 		</div>
