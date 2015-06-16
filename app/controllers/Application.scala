@@ -21,8 +21,12 @@ class Application extends Controller {
 
   implicit val pegdown = new PegDownProcessor()
 
+  val repoRoot = Play.application.path.toPath.resolve(
+    Play.application.configuration.getString("goblinoid.repo.root").getOrElse("repo")
+  )
+
   def index(path: String) = Action {
-    val basePath = Play.application.path.toPath.resolve("dist/repo/" + path.toString)
+    val basePath = repoRoot.resolve(path.toString)
 
     val content = for {
       dir <- tryDirs(basePath, List("", "index"))

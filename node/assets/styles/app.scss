@@ -27,7 +27,6 @@ body {
   }
 }
 
-
 .index-panel {
   background-color: $ghost;
   box-shadow: 1px 1px 4px 1px $iron;
@@ -67,10 +66,13 @@ body {
   position: fixed;
   display: block;
   font-family: sans-serif;
-  top: $column-gutter;
-  width: $column-gutter;
+  top: ($column-gutter / 2);
+  width: ($column-gutter - rem-calc(4));
+  line-height: 2rem;
   text-align: center;
   left: 0;
+  background: $primary-color;
+    color: $ghost;
 }
 
 #hide-menu {
@@ -86,6 +88,7 @@ body {
   width: 0;
   height: 100%;
   background: $primary-color;
+  color: $ghost;
   overflow-y: auto;
   transition: width 0.3s ease;
   z-index: 1;
