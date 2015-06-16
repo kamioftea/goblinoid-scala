@@ -1,5 +1,9 @@
 {
   "template": "standard",
   "title": "About Me",
+  "breadcrumbs": [
+    ["Home", "/"],
+    ["About", "/about", true]
+  ],
   "content": "content"
 }

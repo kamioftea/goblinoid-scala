@@ -1,6 +1,7 @@
 import org.specs2.mutable._
 import org.specs2.runner._
 import org.junit.runner._
+import play.api.mvc.AnyContentAsEmpty
 
 import play.api.test._
 import play.api.test.Helpers._
@@ -20,7 +21,8 @@ class ApplicationSpec extends Specification {
     }
 
     "render the index page" in new WithApplication{
-      val home = route(FakeRequest(GET, "/")).get
+      private val fakeRequest = FakeRequest(GET, "/")
+      val home = route(fakeRequest).get
 
       status(home) must equalTo(OK)
       contentType(home) must beSome.which(_ == "text/html")
