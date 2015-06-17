@@ -1,6 +1,7 @@
 package controllers
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
+import java.util.regex.Pattern
 
 import org.pegdown.PegDownProcessor
 import play.api._
@@ -25,6 +26,24 @@ class Application extends Controller {
   val repoRoot = Play.application.path.toPath.resolve(
     Play.application.configuration.getString("goblinoid.repo.root").getOrElse("repo")
   )
+
+  def findFiles(root: File): List[File] = {
+    val (dirs, files) = root.listFiles().span(_.isDirectory)
+
+    (root :: files.toList) ::: dirs.toList.flatMap { findFiles }
+  }
+
+  val manifests = findFiles(repoRoot.toFile).filter(_.getName == "manifest.json")
+
+  val manifestPaths: List[String] = {
+    val sep = System.getProperty("file.separator")
+    val pattern = s"^${Pattern.quote(repoRoot.toFile.getAbsolutePath)}(.*?)(${Pattern.quote(sep)}index)?${Pattern.quote(sep)}manifest.json$$".r
+
+    manifests map (_.getAbsolutePath) flatMap {
+      case pattern(f,_) => Some(if (f == "") "/" else f.replace(sep, "/"))
+      case _ => None
+    }
+  }
 
   def index(path: String) = Action {
     val basePath = repoRoot.resolve(path.toString)
