@@ -43,14 +43,14 @@
   z-index: 2;
   box-sizing:border-box;
 
-  a, .active {
+  a {
     display: block;
     border: none;
     color: $ghost;
     padding: rem-calc(15);
 
     &.child {
-      background: scale-color($primary-color, $lightness: - 10%);
+      background: scale-color($primary-color, $lightness: + 10%);
       padding-left: rem-calc(30);
     }
 
@@ -59,7 +59,10 @@
     }
 
     &.active {
-      background: scale-color($primary-color, $lightness: + 10%);
+      background: scale-color($primary-color, $lightness: - 10%);
+      &:hover {
+        cursor: default;
+      }
     }
   }
 

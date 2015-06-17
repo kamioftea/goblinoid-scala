@@ -1,0 +1,8 @@
+@(currentPath: String, children: List[NavigationNode], linkClass: String)
+
+@for(child <- children) {
+	<a href="@child.path" class="@linkClass @if(Some(currentPath) == child.path){active}" data-curr="@currentPath">
+		@child.title
+	</a>
+	@views.html.menuNode(currentPath, child.children, "child")
+}

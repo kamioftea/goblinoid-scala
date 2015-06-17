@@ -27,31 +27,15 @@ class Application extends Controller {
     Play.application.configuration.getString("goblinoid.repo.root").getOrElse("repo")
   )
 
-  def findFiles(root: File): List[File] = {
-    val (dirs, files) = root.listFiles().span(_.isDirectory)
-
-    (root :: files.toList) ::: dirs.toList.flatMap { findFiles }
-  }
-
-  val manifests = findFiles(repoRoot.toFile).filter(_.getName == "manifest.json")
-
-  val manifestPaths: List[String] = {
-    val sep = System.getProperty("file.separator")
-    val pattern = s"^${Pattern.quote(repoRoot.toFile.getAbsolutePath)}(.*?)(${Pattern.quote(sep)}index)?${Pattern.quote(sep)}manifest.json$$".r
-
-    manifests map (_.getAbsolutePath) flatMap {
-      case pattern(f,_) => Some(if (f == "") "/" else f.replace(sep, "/"))
-      case _ => None
-    }
-  }
+  lazy val rootNavigationNode = NavigationNode.fromFile(repoRoot)()
 
   def index(path: String) = Action {
-    val basePath = repoRoot.resolve(path.toString)
+    val basePath = repoRoot.resolve(path)
 
     val content = for {
       dir <- tryDirs(basePath, List("", "index"))
       template <- loadTemplate(dir)
-    } yield template.getHtmlContent(loadSections(dir))
+    } yield template.getHtmlContent(loadSections(dir), "/" + path, rootNavigationNode)
 
     content match {
       case None => NotFound(views.html.notFound(path))
@@ -98,7 +82,7 @@ class Application extends Controller {
 }
 
 abstract class Template {
-  def getHtmlContent(sections: Map[String, String]): HtmlFormat.Appendable
+  def getHtmlContent(sections: Map[String, String], currentPath: String, menuRootOpt: Option[NavigationNode]): HtmlFormat.Appendable
 }
 
 case class Panel(title: String, image: String, link: String)
@@ -123,7 +107,7 @@ case class IndexTemplate(title: String, content: String, panels: Seq[Panel], pan
     }).mkString(" ")
 
 
-  override def getHtmlContent(sections: Map[String, String]) = {
+  override def getHtmlContent(sections: Map[String, String], currentPath: String, menuRootOpt: Option[NavigationNode]) = {
     views.html.index(this, sections.withDefaultValue(""))
   }
 }
@@ -139,8 +123,8 @@ object IndexTemplate {
 }
 
 case class StandardTemplate(title: String, content: String, breadcrumbsOpt: Option[Seq[Breadcrumb]]) extends Template {
-  override def getHtmlContent(sections: Map[String, String]) = {
-    views.html.standard(this, sections.withDefaultValue(""))
+  override def getHtmlContent(sections: Map[String, String], currentPath: String, menuRootOpt: Option[NavigationNode]) = {
+    views.html.standard(this, sections.withDefaultValue(""), currentPath, menuRootOpt)
   }
 }
 
@@ -166,3 +150,42 @@ object Breadcrumb {
     )(Breadcrumb.apply _)
 }
 
+case class NavigationNode(path: Option[String], title: Option[String], children: List[NavigationNode])
+
+object NavigationNode {
+  def fromFile(root: Path)(file: File = root.toFile): Option[NavigationNode] = {
+    if (!file.isDirectory)
+      return None
+
+    val children = file.listFiles().toList.filter(f => f.isDirectory && f.getName != "index") flatMap { fromFile(root)(_) }
+    val manifestPath = file.toPath.resolve("manifest.json")
+    val indexPath = file.toPath.resolve("index")
+
+    if(Files.exists(manifestPath)) {
+      val sep = System.getProperty("file.separator")
+      val pattern = s"^${Pattern.quote(root.toFile.getAbsolutePath)}(.*?)(${Pattern.quote(sep)}index)?${Pattern.quote(sep)}manifest.json$$".r
+      val path = manifestPath.toFile.getAbsolutePath match {
+        case pattern(f,_) => Some(if (f == "") "/" else f.replace(sep, "/"))
+        case _ => None
+      }
+
+      val manifest = Json.parse(new FileInputStream(manifestPath.toFile))
+      val title = (manifest \ "title").asOpt[JsString] match {
+        case Some(JsString(str)) => Some(str)
+        case None => None
+      }
+
+      Some(NavigationNode(path, title, children))
+    }
+    else if (Files.exists(indexPath)) {
+      fromFile(root)(indexPath.toFile) match {
+        case Some(NavigationNode(index, title, _)) => Some(NavigationNode(index, title, children))
+        case None => None
+      }
+    }
+    else children match {
+      case Nil => None
+      case xs => Some(NavigationNode(None, None, children))
+    }
+  }
+}
