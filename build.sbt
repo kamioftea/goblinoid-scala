@@ -11,8 +11,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   specs2 % Test,
-  "org.pegdown" % "pegdown" % "1.5.0",
-  "net.sourceforge.htmlunit" % "htmlunit" % "2.17"
+  "org.pegdown" % "pegdown" % "1.5.0"
 )
 
 PlayKeys.devSettings += "goblinoid.repo.root" -> "dist/repo"
