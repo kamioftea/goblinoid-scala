@@ -1,4 +1,4 @@
-@(currentPath: String, children: List[NavigationNode], linkClass: String)
+@(currentPath: String, children: Seq[NavigationNode], linkClass: String)
 
 @for(child <- children) {
 	<a href="@child.path" class="@linkClass @if(Some(currentPath) == child.path){active}" data-curr="@currentPath">

@@ -1,12 +1,11 @@
-@(template: StandardTemplate, sections: Map[String,String], currentPath: String, menuRootOpt: Option[NavigationNode])
+@(template: StandardTemplate, sections: Map[String,String], currentPath: String, menuOpt: Option[NavigationNode.Menu])
 
 @main(template.title + " | Goblinoid.co.uk") {
 
 	<nav id="main-navigation">
-		@menuRootOpt match {
-			case Some(menuRoot) => {
-				<a href="@menuRoot.path">@menuRoot.title</a>
-				@views.html.menuNode(currentPath, menuRoot.children, "")
+		@menuOpt match {
+			case Some(menu) => {
+				@views.html.menuNode(currentPath, menu, "")
 			}
 			case None => {}
 		}

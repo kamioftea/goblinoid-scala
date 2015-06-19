@@ -1,22 +1,19 @@
 package controllers
 
 import java.io.{File, FileInputStream}
-import java.util.regex.Pattern
-
+import java.nio.file.{Files, Path}
 import org.pegdown.PegDownProcessor
+import play.api.Play.current
 import play.api._
-import play.api.data.validation.ValidationError
-import play.api.mvc._
-import java.nio.file.{Path, Files}
-import play.api.libs.json._
-import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json._
+import play.api.mvc._
 import play.twirl.api.HtmlFormat
-
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import play.api.Play.current
 import scala.io.Source
+import scala.util.{Failure, Success, Try}
 
 
 class Application extends Controller {
@@ -27,7 +24,9 @@ class Application extends Controller {
     Play.application.configuration.getString("goblinoid.repo.root").getOrElse("repo")
   )
 
-  lazy val rootNavigationNode = NavigationNode.fromFile(repoRoot)()
+  lazy val rootNavigationNode = NavigationNode.fromFile(repoRoot.resolve(
+    Play.application.configuration.getString("goblinoid.repo.menuFile").getOrElse("menu.json")
+  ))
 
   def index(path: String) = Action {
     val basePath = repoRoot.resolve(path)
@@ -55,12 +54,17 @@ class Application extends Controller {
   }
 
   def loadTemplate(path: Path): Option[Template] = {
-    val manifest = Json.parse(new FileInputStream(path.resolve("manifest.json").toFile))
+    Try {
+      val manifest = Json.parse(new FileInputStream(path.resolve("manifest.json").toFile))
 
-    (manifest \ "template").as[JsString] match {
-      case index if index.equals(JsString("index")) => manifest.validate[IndexTemplate].asOpt
-      case standard if standard.equals(JsString("standard")) => manifest.validate[StandardTemplate].asOpt
-      case _ => None
+      (manifest \ "template").as[JsString] match {
+        case index if index.equals(JsString("index")) => manifest.validate[IndexTemplate].asOpt
+        case standard if standard.equals(JsString("standard")) => manifest.validate[StandardTemplate].asOpt
+        case _ => None
+      }
+    } match {
+      case Success(templateOpt) => templateOpt
+      case Failure(_) => None
     }
   }
 
@@ -82,7 +86,7 @@ class Application extends Controller {
 }
 
 abstract class Template {
-  def getHtmlContent(sections: Map[String, String], currentPath: String, menuRootOpt: Option[NavigationNode]): HtmlFormat.Appendable
+  def getHtmlContent(sections: Map[String, String], currentPath: String, menuOpt: Option[NavigationNode.Menu]): HtmlFormat.Appendable
 }
 
 case class Panel(title: String, image: String, link: String)
@@ -107,7 +111,7 @@ case class IndexTemplate(title: String, content: String, panels: Seq[Panel], pan
     }).mkString(" ")
 
 
-  override def getHtmlContent(sections: Map[String, String], currentPath: String, menuRootOpt: Option[NavigationNode]) = {
+  override def getHtmlContent(sections: Map[String, String], currentPath: String, menuOpt: Option[NavigationNode.Menu]) = {
     views.html.index(this, sections.withDefaultValue(""))
   }
 }
@@ -123,8 +127,8 @@ object IndexTemplate {
 }
 
 case class StandardTemplate(title: String, content: String, breadcrumbsOpt: Option[Seq[Breadcrumb]]) extends Template {
-  override def getHtmlContent(sections: Map[String, String], currentPath: String, menuRootOpt: Option[NavigationNode]) = {
-    views.html.standard(this, sections.withDefaultValue(""), currentPath, menuRootOpt)
+  override def getHtmlContent(sections: Map[String, String], currentPath: String, menuOpt: Option[NavigationNode.Menu]) = {
+    views.html.standard(this, sections.withDefaultValue(""), currentPath, menuOpt)
   }
 }
 
@@ -137,55 +141,39 @@ object StandardTemplate {
     )(StandardTemplate.apply _)
 }
 
-case class Breadcrumb(title: String, url: String, current: Option[Boolean])
-{
-  val currentAttr = if(current.getOrElse(false)) "class=\"current\"" else ""
+case class Breadcrumb(title: String, url: String, current: Option[Boolean]) {
+  val currentAttr = if (current.getOrElse(false)) "class=\"current\"" else ""
 }
 
 object Breadcrumb {
   implicit lazy val reader: Reads[Breadcrumb] = (
     __(0).read[String] and
-    __(1).read[String] and
-    __(2).readNullable[Boolean]
+      __(1).read[String] and
+      __(2).readNullable[Boolean]
     )(Breadcrumb.apply _)
 }
 
-case class NavigationNode(path: Option[String], title: Option[String], children: List[NavigationNode])
+case class NavigationNode(path: Option[String], title: Option[String], children: Seq[NavigationNode] = Nil)
 
 object NavigationNode {
-  def fromFile(root: Path)(file: File = root.toFile): Option[NavigationNode] = {
-    if (!file.isDirectory)
-      return None
 
-    val children = file.listFiles().toList.filter(f => f.isDirectory && f.getName != "index") flatMap { fromFile(root)(_) }
-    val manifestPath = file.toPath.resolve("manifest.json")
-    val indexPath = file.toPath.resolve("index")
+  type Menu = Seq[NavigationNode]
 
-    if(Files.exists(manifestPath)) {
-      val sep = System.getProperty("file.separator")
-      val pattern = s"^${Pattern.quote(root.toFile.getAbsolutePath)}(.*?)(${Pattern.quote(sep)}index)?${Pattern.quote(sep)}manifest.json$$".r
-      val path = manifestPath.toFile.getAbsolutePath match {
-        case pattern(f,_) => Some(if (f == "") "/" else f.replace(sep, "/"))
-        case _ => None
-      }
+  implicit val reader: Reads[NavigationNode] = (
+    (JsPath \ "url").readNullable[String] and
+      (JsPath \ "title").readNullable[String] and
+      (JsPath \ "children").lazyRead(Reads.seq[NavigationNode]).orElse(Reads.pure(Seq.empty[NavigationNode]))
+    )(NavigationNode.apply _)
 
-      val manifest = Json.parse(new FileInputStream(manifestPath.toFile))
-      val title = (manifest \ "title").asOpt[JsString] match {
-        case Some(JsString(str)) => Some(str)
-        case None => None
-      }
-
-      Some(NavigationNode(path, title, children))
+  def fromFile(path: Path): Option[Menu] = {
+    Try {
+      val file: File = path.toFile
+      val menu = Json.parse(new FileInputStream(file))
+      menu.validate[Seq[NavigationNode]].asOpt
+    } match {
+      case Success(menuOpt) => menuOpt
+      case Failure(err) => throw err
     }
-    else if (Files.exists(indexPath)) {
-      fromFile(root)(indexPath.toFile) match {
-        case Some(NavigationNode(index, title, _)) => Some(NavigationNode(index, title, children))
-        case None => None
-      }
-    }
-    else children match {
-      case Nil => None
-      case xs => Some(NavigationNode(None, None, children))
-    }
+
   }
 }
