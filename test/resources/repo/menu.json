@@ -1,0 +1,28 @@
+[
+  {
+	"url": "/",
+	"title": "Home"
+  },
+  {
+	"url": "/about",
+	"title": "About",
+	"children": [
+	  {
+		"url": "/about/skills",
+		"title": "Skills"
+	  },
+	  {
+		"url": "/about/experience",
+		"title": "Experience"
+	  }
+	]
+  },
+  {
+	"url": "/stuff",
+	"title": "Things I've Built"
+  },
+  {
+	"url": "/contact",
+	"title": "Contact Me"
+  }
+]

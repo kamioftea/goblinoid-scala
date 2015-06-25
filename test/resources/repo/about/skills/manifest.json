@@ -1,0 +1,10 @@
+{
+  "template": "standard",
+  "title": "What I Can Do",
+  "breadcrumbs": [
+    ["Home", "/"],
+    ["About", "/about"],
+    ["Skills", "/about/skills", true]
+  ],
+  "content": "content"
+}
