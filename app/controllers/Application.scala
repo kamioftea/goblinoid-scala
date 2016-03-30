@@ -18,13 +18,13 @@ import scala.util.{Failure, Success, Try}
 
 class Application extends Controller {
 
-  implicit val pegdown = new PegDownProcessor()
+  val pegdown = new PegDownProcessor()
 
   val repoRoot = Play.application.path.toPath.resolve(
     Play.application.configuration.getString("goblinoid.repo.root").getOrElse("repo")
   )
 
-  lazy val rootNavigationNode = NavigationNode.fromFile(repoRoot.resolve(
+  lazy val menu = NavigationNode.fromFile(repoRoot.resolve(
     Play.application.configuration.getString("goblinoid.repo.menuFile").getOrElse("menu.json")
   ))
 
@@ -34,7 +34,7 @@ class Application extends Controller {
     val content = for {
       dir <- tryDirs(basePath, List("", "index"))
       template <- loadTemplate(dir)
-    } yield template.getHtmlContent(loadSections(dir), "/" + path, rootNavigationNode)
+    } yield template.getHtmlContent(loadSections(dir), "/" + path, menu)
 
     content match {
       case None => NotFound(views.html.notFound(path))
@@ -172,7 +172,7 @@ object NavigationNode {
       menu.validate[Seq[NavigationNode]].asOpt
     } match {
       case Success(menuOpt) => menuOpt
-      case Failure(err) => throw err
+      case Failure(err) => None
     }
 
   }

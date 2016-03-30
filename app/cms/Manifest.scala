@@ -6,6 +6,6 @@ package cms
  */
 trait Manifest {
 
-  def getTemplate: Template
+  def getTemplate(path: String): Option[Template]
 
 }

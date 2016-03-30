@@ -8,4 +8,6 @@ import play.twirl.api.HtmlFormat
  */
 trait Template {
   def getHtmlContent(sections: Map[String, String]): HtmlFormat.Appendable
+
+  def withManifest(manifest: Manifest): Template
 }
